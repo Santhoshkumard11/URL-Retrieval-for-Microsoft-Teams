@@ -19,7 +19,7 @@ import tempfile
 from os import listdir
 
 tempFilePath = tempfile.gettempdir()
-fp = tempfile.TemporaryFile()
+
 
 subscription_key = os.environ.get("COGNITIVESERVICES_KEY")
 endpoint = os.environ.get("COGNITIVESERVICES_URL")
@@ -47,20 +47,13 @@ def sanitize_urls(urls_list: list):
     return json.dumps(result_url_list)
 
 
-def stringToRGB(base64_string):
-    
-    img_data = base64.b64decode(base64_string)
-    # fp.write(bytes(img_data,"utf-8"))
-    fp.write(img_data)
-    fp.seek(0)
-
-
-
 def get_text_from_image(image_string: str):
-    
+    fp = tempfile.TemporaryFile()
     url_links = []
 
-    stringToRGB(image_string)
+    img_data = base64.b64decode(image_string)
+    fp.write(img_data)
+    fp.seek(0)
 
     computervision_client = ComputerVisionClient(endpoint, CognitiveServicesCredentials(subscription_key))
     
