@@ -1,4 +1,4 @@
-from GenerateLink.process_image import run_link_generator
+from GenerateLink.process_image import run_link_generator, save_image_from_base64
 import logging
 import json
 import azure.functions as func
@@ -9,7 +9,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     global image_binary
     
-    image_name = "test1.png"
+    image_name = "test.png"
     if req.method == "GET":
             
         image_name = req.params.get('image_name')
@@ -18,12 +18,13 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         
     else:
         req_body = req.get_json()
-        image_binary = req_body.get('image_binary')
+        image_binary = req_body.get('image_binary')["$content"]
     
+        save_image_from_base64(image_binary)
 
         try:
-            
-            detected_url = run_link_generator(image_name)
+
+            detected_url = run_link_generator()
 
             return func.HttpResponse(
                 detected_url,
