@@ -17,7 +17,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             image_name = req_body.get('image_name')
 
     if image_name == "null":
-        return json.dumps({"url":"null"})
+        return func.HttpResponse("Thanks for checking out the api. Send a valid image name to generate the url", status_code=200)
 
     else:
 
