@@ -15,11 +15,17 @@ import base64
 import io
 import cv2
 import numpy as np
+import tempfile
+from os import listdir
+
+tempFilePath = tempfile.gettempdir()
+fp = tempfile.TemporaryFile()
 
 subscription_key = os.environ.get("COGNITIVESERVICES_KEY")
 endpoint = os.environ.get("COGNITIVESERVICES_URL")
 
-computervision_client = ComputerVisionClient(endpoint, CognitiveServicesCredentials(subscription_key))
+
+logging.info("Computer vision service connected!!")
 
 domain_ref_dict = ["http","https"]
 
@@ -42,24 +48,31 @@ def sanitize_urls(urls_list: list):
 
 
 def stringToRGB(base64_string):
-    img_data = base64.b64decode(str(base64_string))
-    image = Image.open(io.BytesIO(img_data))
-    return cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB)
+    
+    img_data = base64.b64decode(base64_string)
+    # fp.write(bytes(img_data,"utf-8"))
+    fp.write(img_data)
+    fp.seek(0)
+
 
 
 def get_text_from_image(image_string: str):
     
     url_links = []
 
-    read_image = stringToRGB(image_string)
+    stringToRGB(image_string)
 
+    computervision_client = ComputerVisionClient(endpoint, CognitiveServicesCredentials(subscription_key))
+    
     # Call API with image and raw response (allows you to get the operation location)
-    read_response = computervision_client.read_in_stream(read_image, raw=True)
+    read_response = computervision_client.read_in_stream(fp, raw=True)
     # Get the operation location (URL with ID as last appendage)
     read_operation_location = read_response.headers["Operation-Location"]
     # Take the ID off and use to get results
     operation_id = read_operation_location.split("/")[-1]
     
+    fp.close()
+
     logging.info("Image sent to Computer Vision Services")
 
     # Call the "GET" API and wait for the retrieval of the results
@@ -84,7 +97,7 @@ def get_text_from_image(image_string: str):
     return sanitize_urls(url_links)
 
 
-def run_link_generator():
+def run_link_generator(image_binary: str):
 
     "Process the received text to get only the links"
 
@@ -92,7 +105,7 @@ def run_link_generator():
 
     logging.info("Process Started!!")
     
-    url_links = get_text_from_image("test1.jpg")
+    url_links = get_text_from_image(image_binary)
 
     logging.info("End of Processing!!")
 
