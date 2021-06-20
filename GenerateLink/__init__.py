@@ -20,10 +20,15 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse("Thanks for checking out the api. Send a valid image name to generate the url", status_code=200)
 
     else:
+        
+        try:
+            
+            detected_url = run_link_generator(image_name) 
 
-        detected_url = run_link_generator(image_name) 
-
-        return func.HttpResponse(
-             f"{detected_url}",
-             status_code=200
-        )
+            return func.HttpResponse(
+                f"{detected_url}",
+                status_code=200
+            )
+        
+        except:
+            return func.HttpResponse("Something went wrong!!!")
