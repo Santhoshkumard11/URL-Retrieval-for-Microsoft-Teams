@@ -10,9 +10,8 @@ import sys
 import time
 
 
-subscription_key = ""
-endpoint = ""
-
+subscription_key = os.environ.get("COGNITIVESERVICES_KEY")
+endpoint = os.environ.get("COGNITIVESERVICES_URL")
 
 computervision_client = ComputerVisionClient(endpoint, CognitiveServicesCredentials(subscription_key))
 
@@ -22,6 +21,18 @@ def is_url(text: str):
     
     return True if len(list(filter(lambda x: text.startswith(x), domain_ref_dict))) else False
 
+
+def sanitize_urls(urls_list: list):
+    
+    result_url_list = []
+    
+    for url in urls_list:
+        
+        url = url.replace(" ","")
+        
+        result_url_list.append(url)
+
+    return result_url_list
 
 def get_text_from_image(image_name: str):
     
@@ -60,12 +71,14 @@ def get_text_from_image(image_name: str):
     
     print("End of Processing!!")
 
-    return url_links
+    return sanitize_urls(url_links)
 
 
 def run_link_generator(image_name: str):
 
     "Process the received text to get only the links"
+
+    # TODO: identify the Linkedin and Twitter handles and find the profile links
 
     print("Process Started!!")
 
