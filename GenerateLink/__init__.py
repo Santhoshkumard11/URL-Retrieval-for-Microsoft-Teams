@@ -7,14 +7,17 @@ import azure.functions as func
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Generate URL Link Function Triggered!!')
 
-    image_name = req.params.get('image_name')
-    if not image_name:
-        try:
-            req_body = req.get_json()
-        except ValueError:
-            pass
-        else:
-            image_name = req_body.get('image_name')
+    global image_binary
+    
+    image_name = "null"
+    if req.method == "GET":
+            
+        image_name = req.params.get('image_name')
+        
+    else:
+        req_body = req.get_json()
+    
+        image_binary = req_body.get('image_binary')
 
     if image_name == "null":
         return func.HttpResponse("Thanks for checking out the api. Send a valid image name to generate the url", status_code=200)
@@ -23,10 +26,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         
         try:
             
-            detected_url = run_link_generator(image_name) 
+            detected_url = run_link_generator(image_name)
 
             return func.HttpResponse(
-                f"{detected_url}",
+                detected_url,
                 status_code=200
             )
         

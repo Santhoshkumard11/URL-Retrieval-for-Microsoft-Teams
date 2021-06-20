@@ -8,7 +8,7 @@ import os
 from PIL import Image
 import sys
 import time
-
+import json
 
 subscription_key = os.environ.get("COGNITIVESERVICES_KEY")
 endpoint = os.environ.get("COGNITIVESERVICES_URL")
@@ -30,9 +30,10 @@ def sanitize_urls(urls_list: list):
         
         url = url.replace(" ","")
         
-        result_url_list.append(url)
+        result_url_list.append({"url":  url})
 
-    return result_url_list
+    return json.dumps(result_url_list)
+
 
 def get_text_from_image(image_name: str):
     
@@ -81,5 +82,7 @@ def run_link_generator(image_name: str):
     # TODO: identify the Linkedin and Twitter handles and find the profile links
 
     print("Process Started!!")
+    
+    url_links = get_text_from_image(image_name)
 
-    return get_text_from_image(image_name)
+    return url_links
