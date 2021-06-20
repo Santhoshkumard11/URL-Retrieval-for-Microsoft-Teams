@@ -1,3 +1,5 @@
+import io
+import logging
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from azure.cognitiveservices.vision.computervision.models import OperationStatusCodes
 from azure.cognitiveservices.vision.computervision.models import VisualFeatureTypes
@@ -10,6 +12,9 @@ import sys
 import time
 import json
 import base64
+import io
+import cv2
+import numpy as np
 
 subscription_key = os.environ.get("COGNITIVESERVICES_KEY")
 endpoint = os.environ.get("COGNITIVESERVICES_URL")
@@ -36,20 +41,17 @@ def sanitize_urls(urls_list: list):
     return json.dumps(result_url_list)
 
 
-def save_image_from_base64(base64_string: str):
-    img_data = base64.b64decode(base64_string)
-    filename = os.path.join ("GenerateLink/images","ocr_image.jpg")
-    with open(filename, 'wb') as f:
-        f.write(img_data)
+def stringToRGB(base64_string):
+    img_data = base64.b64decode(str(base64_string))
+    image = Image.open(io.BytesIO(img_data))
+    return cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB)
 
-def get_text_from_image(image_name: str):
+
+def get_text_from_image(image_string: str):
     
     url_links = []
 
-    # Get image path
-    read_image_path = os.path.join ("GenerateLink/images", image_name)
-    # Open the image
-    read_image = open(read_image_path, "rb")
+    read_image = stringToRGB(image_string)
 
     # Call API with image and raw response (allows you to get the operation location)
     read_response = computervision_client.read_in_stream(read_image, raw=True)
@@ -57,13 +59,15 @@ def get_text_from_image(image_name: str):
     read_operation_location = read_response.headers["Operation-Location"]
     # Take the ID off and use to get results
     operation_id = read_operation_location.split("/")[-1]
+    
+    logging.info("Image sent to Computer Vision Services")
 
     # Call the "GET" API and wait for the retrieval of the results
     while True:
         read_result = computervision_client.get_read_result(operation_id)
         if read_result.status.lower () not in ['notstarted', 'running']:
             break
-        print ('Waiting for result...')
+        print('Waiting for result...')
         time.sleep(10)
 
 
@@ -77,10 +81,6 @@ def get_text_from_image(image_name: str):
 
     computervision_client.close()
 
-    os.remove(read_image_path)
-
-    print("End of Processing!!")
-
     return sanitize_urls(url_links)
 
 
@@ -90,8 +90,10 @@ def run_link_generator():
 
     # TODO: identify the Linkedin and Twitter handles and find the profile links
 
-    print("Process Started!!")
+    logging.info("Process Started!!")
     
-    url_links = get_text_from_image("ocr_image.jpg")
+    url_links = get_text_from_image("test1.jpg")
+
+    logging.info("End of Processing!!")
 
     return url_links
