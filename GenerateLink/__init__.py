@@ -9,6 +9,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     global image_binary
     
+    # set the image name to default for testing
     image_name = "test1.png"
     if req.method == "GET":
             
@@ -17,11 +18,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             return func.HttpResponse("Thanks for checking out the api. Send a valid image name to generate the url", status_code=200)
         
     else:
+        # get the binary image from the request body
         req_body = req.get_json()
         image_binary = req_body.get('image_binary')["$content"]
 
         try:
-
+            # start the process calling the link generator
             detected_url = run_link_generator(image_binary)
 
             return func.HttpResponse(

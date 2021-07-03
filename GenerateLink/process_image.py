@@ -20,7 +20,7 @@ from os import listdir
 
 tempFilePath = tempfile.gettempdir()
 
-
+# these environment variables are set in the Azure Function
 subscription_key = os.environ.get("COGNITIVESERVICES_KEY")
 endpoint = os.environ.get("COGNITIVESERVICES_URL")
 
@@ -30,11 +30,27 @@ logging.info("Computer vision service connected!!")
 domain_ref_dict = ["http","https"]
 
 def is_url(text: str):
+    """ Check if the given string is a URL or contains an URL
+
+    Args:
+        text (str): recognized text from the image
+
+    Returns:
+        Bool : Return True if given string is a URL else False
+    """
     
     return True if len(list(filter(lambda x: text.startswith(x), domain_ref_dict))) else False
 
 
 def sanitize_urls(urls_list: list):
+    """Remove unwanted space and strip the text string
+
+    Args:
+        urls_list (list): list of recognized text from Computer Vision
+
+    Returns:
+        json: json payload of sanitized URLs
+    """
     
     result_url_list = []
     
@@ -48,13 +64,17 @@ def sanitize_urls(urls_list: list):
 
 
 def get_text_from_image(image_string: str):
+    
+    # since Azure Functions are readonly using a temp file process the image
     fp = tempfile.TemporaryFile()
     url_links = []
 
+    # reconstruct the image from binary form
     img_data = base64.b64decode(image_string)
     fp.write(img_data)
     fp.seek(0)
 
+    # create the computer vision client
     computervision_client = ComputerVisionClient(endpoint, CognitiveServicesCredentials(subscription_key))
     
     # Call API with image and raw response (allows you to get the operation location)
